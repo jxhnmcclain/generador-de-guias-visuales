@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cf-style-backend
+    ports:
+      - "8001:8001"
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: cf-style-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    restart: always

@@ -1,0 +1,5 @@
+{
+  "name": "ComunidadFeliz Style Generator",
+  "description": "Upload a PDF document and convert it into a web page styled with the ComunidadFeliz brand identity using Gemini AI.",
+  "requestFramePermissions": []
+}
