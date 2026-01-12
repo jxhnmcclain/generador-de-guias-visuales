@@ -3,11 +3,20 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from playwright.async_api import async_playwright
 import uvicorn
+import base64
+import os
 
 # Rate limiting
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+
+# Load logo as base64 for PDF embedding
+LOGO_BASE64 = ""
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo-full.jpg")
+if os.path.exists(LOGO_PATH):
+    with open(LOGO_PATH, "rb") as f:
+        LOGO_BASE64 = base64.b64encode(f.read()).decode('utf-8')
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -99,6 +108,14 @@ async def export_pdf(request: ExportRequest, fastapi_request: Request):
     </style>
 </head>
 <body class="bg-white">
+    <!-- Brand Header -->
+    <div class="w-full bg-white border-b border-gray-100 flex justify-between items-center p-8">
+        <div class="flex items-center">
+            {f'<img src="data:image/jpeg;base64,{{LOGO_BASE64}}" class="h-10 w-auto" />' if LOGO_BASE64 else f'<span class="font-bold text-lg text-[#4e526e]">Comunidad<span class="text-[#4cbf8c]">Feliz</span></span>'}
+        </div>
+        <div class="h-1 w-16 bg-[#005fc5] rounded-full opacity-20"></div>
+    </div>
+
     <!-- Center container similar to the preview card -->
     <div class="w-full max-w-[{width}px] mx-auto p-8">
         {request.html_content}

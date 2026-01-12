@@ -6,6 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+COPY logo-full.jpg .
 
 # Expose port 8001
 EXPOSE 8001

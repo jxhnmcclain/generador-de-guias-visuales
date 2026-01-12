@@ -251,9 +251,12 @@ const Preview: React.FC<PreviewProps> = ({ htmlContent, onReset }) => {
 
         {/* Brand Header */}
         <div className="bg-white px-8 py-6 border-b border-gray-50 flex justify-between items-center relative z-10">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#4cbf8c] rounded-md flex items-center justify-center text-white font-bold text-sm shadow-sm">CF</div>
-            <span className="font-bold text-lg text-[#4e526e]">Comunidad<span className="text-[#4cbf8c]">Feliz</span></span>
+          <div className="flex items-center">
+            <img
+              src="/assets/logo-full.jpg"
+              alt="ComunidadFeliz"
+              className="h-10 w-auto object-contain"
+            />
           </div>
           {/* Optional decorative line or info */}
           <div className="h-1 w-16 bg-[#005fc5] rounded-full opacity-20"></div>
