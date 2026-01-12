@@ -17,6 +17,9 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo-full.jpg")
 if os.path.exists(LOGO_PATH):
     with open(LOGO_PATH, "rb") as f:
         LOGO_BASE64 = base64.b64encode(f.read()).decode('utf-8')
+    print(f"INFO: Logo loaded successfully ({len(LOGO_BASE64)} bytes)")
+else:
+    print(f"WARNING: Logo file not found at {LOGO_PATH}")
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -111,7 +114,7 @@ async def export_pdf(export_data: ExportRequest, request: Request):
     <!-- Brand Header -->
     <div class="w-full bg-white border-b border-gray-100 flex justify-between items-center p-8">
         <div class="flex items-center">
-            {f'<img src="data:image/jpeg;base64,{{LOGO_BASE64}}" class="h-10 w-auto" />' if LOGO_BASE64 else f'<span class="font-bold text-lg text-[#4e526e]">Comunidad<span class="text-[#4cbf8c]">Feliz</span></span>'}
+            {f'<img src="data:image/jpeg;base64,{LOGO_BASE64}" class="h-10 w-auto" />' if LOGO_BASE64 else f'<span class="font-bold text-lg text-[#4e526e]">Comunidad<span class="text-[#4cbf8c]">Feliz</span></span>'}
         </div>
         <div class="h-1 w-16 bg-[#005fc5] rounded-full opacity-20"></div>
     </div>
