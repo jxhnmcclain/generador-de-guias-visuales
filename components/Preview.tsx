@@ -161,6 +161,12 @@ const Preview: React.FC<PreviewProps> = ({ htmlContent, onReset }) => {
                   })
                 });
 
+                if (response.status === 429) {
+                  alert("Has excedido el límite de exportaciones. Por favor, espera un minuto e intenta de nuevo.");
+                  setIsGeneratingPdf(false);
+                  return;
+                }
+
                 if (!response.ok) throw new Error('Export failed');
 
                 const blob = await response.blob();

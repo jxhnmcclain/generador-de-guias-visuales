@@ -1,10 +1,18 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Request
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from playwright.async_api import async_playwright
 import uvicorn
 
+# Rate limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Allow CORS so the React app can call it
 app.add_middleware(
@@ -24,7 +32,8 @@ async def root():
     return {"status": "ok", "message": "ComunidadFeliz PDF Export Backend is running"}
 
 @app.post("/export")
-async def export_pdf(request: ExportRequest):
+@limiter.limit("5/minute")
+async def export_pdf(request: ExportRequest, fastapi_request: Request):
     try:
         # Determine dimensions based on orientation
         is_landscape = request.orientation == "landscape"
