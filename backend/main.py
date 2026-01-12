@@ -42,10 +42,10 @@ async def root():
 
 @app.post("/export")
 @limiter.limit("5/minute")
-async def export_pdf(request: ExportRequest, fastapi_request: Request):
+async def export_pdf(export_data: ExportRequest, request: Request):
     try:
         # Determine dimensions based on orientation
-        is_landscape = request.orientation == "landscape"
+        is_landscape = export_data.orientation == "landscape"
         width = 1123 if is_landscape else 794
         height = 794 if is_landscape else 1123
         
@@ -118,7 +118,7 @@ async def export_pdf(request: ExportRequest, fastapi_request: Request):
 
     <!-- Center container similar to the preview card -->
     <div class="w-full max-w-[{width}px] mx-auto p-8">
-        {request.html_content}
+        {export_data.html_content}
     </div>
 </body>
 </html>
