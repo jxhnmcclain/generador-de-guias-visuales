@@ -19,6 +19,10 @@ class ExportRequest(BaseModel):
     html_content: str
     orientation: str = "portrait" # "portrait" or "landscape"
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "ComunidadFeliz PDF Export Backend is running"}
+
 @app.post("/export")
 async def export_pdf(request: ExportRequest):
     try:
