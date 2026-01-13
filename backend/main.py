@@ -87,62 +87,85 @@ async def export_pdf(export_data: ExportRequest, request: Request):
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body {{ font-family: 'Montserrat', sans-serif; color: #4e526e; background-color: #ffffff; }}
+      body {{ 
+        font-family: 'Montserrat', sans-serif; 
+        color: #4e526e; 
+        background-color: #ffffff !important; 
+        margin: 0;
+        padding: 0;
+      }}
       
       /* Intelligent Page Breaks */
-      
-      /* Avoid breaking inside card-like elements and tables */
-      .rounded-xl, .rounded-2xl, .shadow-md, .shadow-lg, .shadow-sm, table, tr, img, figure, .bg-white, .bg-\\[\\#eef3fe\\] {{
+      section, .grid > div, .space-y-6 > div, .card, .bg-white, .rounded-xl, .rounded-2xl {{
+        break-inside: avoid-page;
         page-break-inside: avoid;
-        break-inside: avoid;
       }}
       
-      /* Headers should not be separated from the text that follows */
-      h1, h2, h3, h4, h5, h6 {{
+      h1, h2, h3, h4 {{
+        break-after: avoid-page;
         page-break-after: avoid;
-        break-after: avoid;
       }}
 
-      /* Improve readability across pages */
+      img, ul, ol, table {{
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }}
+
       p, li {{
-        orphans: 3;
-        widows: 3;
+        orphans: 4;
+        widows: 4;
+      }}
+
+      @page {{
+        size: A4;
+        margin-top: 35mm;
+        margin-bottom: 25mm;
+        margin-left: 15mm;
+        margin-right: 15mm;
+      }}
+
+      /* Full-width content container */
+      .pdf-content {{
+        width: 100%;
+        background-color: #ffffff !important;
       }}
     </style>
 </head>
 <body class="bg-white">
-    <!-- Brand Header -->
-    <div class="w-full bg-white border-b border-gray-100 flex justify-between items-center p-8">
-        <div class="flex items-center">
-            {f'<img src="data:image/jpeg;base64,{LOGO_BASE64}" class="h-10 w-auto" />' if LOGO_BASE64 else f'<span class="font-bold text-lg text-[#4e526e]">Comunidad<span class="text-[#4cbf8c]">Feliz</span></span>'}
-        </div>
-        <div class="h-1 w-16 bg-[#005fc5] rounded-full opacity-20"></div>
-    </div>
-
-    <!-- Center container similar to the preview card -->
-    <div class="w-full max-w-[{width}px] mx-auto p-8">
+    <div class="pdf-content">
         {export_data.html_content}
     </div>
 </body>
 </html>
 """
+        # Header template for every page
+        header_html = f"""
+        <div style="width: 100%; font-size: 10px; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; font-family: 'Montserrat', sans-serif; border-bottom: 1px solid #f0f0f0;">
+            <div style="display: flex; align-items: center;">
+                {f'<img src="data:image/jpeg;base64,{LOGO_BASE64}" style="height: 25px; width: auto;" />' if LOGO_BASE64 else '<span style="font-weight: bold; color: #4e526e;">Comunidad<span style="color: #4cbf8c;">Feliz</span></span>'}
+            </div>
+            <div style="height: 3px; width: 40px; background-color: #005fc5; opacity: 0.2; border-radius: 10px;"></div>
+        </div>
+        """
+
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
-            
-            # Simulate A4 dimensions based on orientation
-            # This ensures Tailwind responsive classes (md:, lg:) behave as they would on the paper
+            await page.emulate_media(media="print")
             await page.set_viewport_size({"width": width, "height": height})
-            
-            # Wait for networkidle to ensure Tailwind CDN loads
             await page.set_content(full_html, wait_until="networkidle") 
             
             pdf_data = await page.pdf(
                 format="A4",
                 landscape=is_landscape,
                 print_background=True, 
-                margin={"top": "20px", "bottom": "20px", "left": "20px", "right": "20px"},
-                scale=0.9  # Slight scale down to ensure margins don't clip content
+                # Increase top margin to accommodate the headerTemplate
+                margin={"top": "40mm", "bottom": "20mm", "left": "15mm", "right": "15mm"},
+                scale=1.0,
+                display_header_footer=True,
+                header_template=header_html,
+                footer_template='<div style="width: 100%; font-size: 8px; text-align: right; padding: 0 40px; color: #aaa; font-family: sans-serif;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>',
+                prefer_css_page_size=True
             )
             await browser.close()
 
@@ -150,7 +173,7 @@ async def export_pdf(export_data: ExportRequest, request: Request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print(f"Error generating PDF: {e}")
+        print(f"Error generating PDF: {{e}}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

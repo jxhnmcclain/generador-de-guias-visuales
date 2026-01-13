@@ -137,11 +137,13 @@ export const generateGuideFromPrompt = async (userPrompt: string, context: strin
     "${userPrompt}"
     
     CONSTRAINTS & FORMATTING:
-    1. FORMAT: Create a "Visual Flyer" or "Brochure" layout.
-    2. LENGTH LIMIT: The content must fit within a MAXIMUM OF 3 A4 PAGES. Be VERY SPECIFIC and DETAILED.
-    3. NO WALLS OF TEXT: Use grid layouts, cards, and icons, but maintain the density of information.
-    4. LANGUAGE: Always respond in Spanish.
-    5. STYLE & CONTRAST (CRITICAL): 
+    1. FORMAT: Create a "Visual Flyer" or "Brochure" layout using modular sections.
+    2. MODULAR DESIGN (CRITICAL FOR PDF): DO NOT wrap the entire content in one giant <div> or any colored background container. The document must have a WHITE BACKGROUND by default. Use multiple <section> or <div> blocks. Each main topic or product should be its own block. This allows the PDF generator to insert page breaks correctly.
+    3. NO WRAPPERS: Do not add an outer div with "bg-gray-50", "shadow" or "rounded-xl" to the whole output. Only apply those styles to specific feature cards within the sections.
+    4. LENGTH LIMIT: The content must fit within a MAXIMUM OF 3 A4 PAGES. Be VERY SPECIFIC and DETAILED.
+    4. NO WALLS OF TEXT: Use grid layouts, cards, and icons, but maintain the density of information.
+    5. LANGUAGE: Always respond in Spanish.
+    6. STYLE & CONTRAST (CRITICAL): 
        - If you use a dark background (like Blue #005fc5), you MUST use WHITE TEXT for ALL elements inside.
        - Use the class "!text-white" on headings (h1, h2, h3) and paragraphs (p) to ensure high contrast.
        - NEVER use gray or dark text on dark backgrounds.
