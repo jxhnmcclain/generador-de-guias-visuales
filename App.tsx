@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import GeometricShapes from './components/GeometricShapes';
 import FileUpload from './components/FileUpload';
 import Preview from './components/Preview';
+import ChatInterface from './components/ChatInterface';
 import { fileToBase64, generateSiteFromPdf } from './services/geminiService';
 import { AppState } from './types';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
+  const [activeTab, setActiveTab] = useState<'pdf' | 'chat'>('pdf');
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -26,6 +28,11 @@ const App: React.FC = () => {
     }
   };
 
+  const handleChatSuccess = (html: string) => {
+    setHtmlContent(html);
+    setAppState(AppState.SUCCESS);
+  };
+
   const handleReset = () => {
     setAppState(AppState.IDLE);
     setHtmlContent('');
@@ -38,12 +45,29 @@ const App: React.FC = () => {
       <nav className="relative z-20 bg-white/90 backdrop-blur-sm shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            <div className="flex items-center">
+            <div className="flex items-center gap-8">
               <img
                 src="/assets/logo-full.jpg"
                 alt="ComunidadFeliz Logo"
-                className="h-12 w-auto object-contain"
+                className="h-12 w-auto object-contain cursor-pointer"
+                onClick={handleReset}
               />
+
+              {/* Tab Navigation */}
+              <div className="hidden sm:flex bg-gray-100/50 p-1 rounded-xl">
+                <button
+                  onClick={() => { setActiveTab('pdf'); handleReset(); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pdf' ? 'bg-white text-[#005fc5] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  De PDF
+                </button>
+                <button
+                  onClick={() => { setActiveTab('chat'); handleReset(); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'chat' ? 'bg-white text-[#4cbf8c] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Por IA Chat
+                </button>
+              </div>
             </div>
             <div className="hidden md:flex space-x-8">
               <span className="text-[#005fc5] font-semibold cursor-pointer hover:opacity-80">Documentación</span>
@@ -60,13 +84,14 @@ const App: React.FC = () => {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col items-center min-h-[calc(100vh-80px)]">
 
         {appState === AppState.IDLE && (
-          <div className="text-center mb-12 animate-fade-in-down">
+          <div className="text-center mb-6 animate-fade-in-down">
             <h1 className="text-4xl md:text-5xl font-bold text-[#4e526e] mb-6">
-              Generador de <span className="text-[#005fc5]">Guías Visuales</span>
+              Generador de <span className={activeTab === 'pdf' ? "text-[#005fc5]" : "text-[#4cbf8c]"}>Guías Visuales</span>
             </h1>
             <p className="text-lg text-[#4e526e] max-w-2xl mx-auto leading-relaxed">
-              Transforma tus documentos PDF en páginas web hermosas y estructuradas,
-              siguiendo automáticamente la identidad visual de ComunidadFeliz.
+              {activeTab === 'pdf'
+                ? "Transforma tus documentos PDF en páginas web hermosas y estructuradas, siguiendo automáticamente la identidad visual de ComunidadFeliz."
+                : "Describe lo que necesitas y generaremos una guía visual personalizada con información sintetizada de ComunidadFeliz."}
             </p>
           </div>
         )}
@@ -78,11 +103,20 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {(appState === AppState.IDLE || appState === AppState.ANALYZING || appState === AppState.ERROR) && (
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            isLoading={appState === AppState.ANALYZING}
-          />
+        {/* Dynamic Content based on Tab */}
+        {appState !== AppState.SUCCESS && (
+          activeTab === 'pdf' ? (
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              isLoading={appState === AppState.ANALYZING}
+            />
+          ) : (
+            <ChatInterface
+              onSuccess={handleChatSuccess}
+              isLoading={appState === AppState.ANALYZING}
+              setIsLoading={(loading) => setAppState(loading ? AppState.ANALYZING : AppState.IDLE)}
+            />
+          )
         )}
 
         {appState === AppState.SUCCESS && (

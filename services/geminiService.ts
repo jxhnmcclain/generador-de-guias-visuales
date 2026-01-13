@@ -119,3 +119,58 @@ export const generateSiteFromPdf = async (base64Pdf: string): Promise<string> =>
     throw new Error("Failed to generate content from PDF.");
   }
 };
+
+export const generateGuideFromPrompt = async (userPrompt: string, context: string): Promise<string> => {
+  const modelId = 'gemini-flash-latest';
+
+  const prompt = `
+    You are an expert UI/UX Designer and Content Strategist at ComunidadFeliz.
+    
+    TASK: Generate a VISUAL FLYER/BROCHURE based on the user's request, using the provided ComunidadFeliz context.
+    
+    CRITICAL: Maintain HIGH DETAIL for the provided product information. Do NOT summarize aggressively. Your task is to present the features, benefits, and specific descriptions of the selected products in a comprehensive way. While you may synthesize and reorganize the text to create a cohesive layout within the 3-page limit, you must ensure that no key information or specific value propositions are lost.
+    
+    COMUNIDADFELIZ CONTEXT (DETAILED):
+    ${context}
+    
+    USER REQUEST:
+    "${userPrompt}"
+    
+    CONSTRAINTS & FORMATTING:
+    1. FORMAT: Create a "Visual Flyer" or "Brochure" layout.
+    2. LENGTH LIMIT: The content must fit within a MAXIMUM OF 3 A4 PAGES. Be VERY SPECIFIC and DETAILED.
+    3. NO WALLS OF TEXT: Use grid layouts, cards, and icons, but maintain the density of information.
+    4. LANGUAGE: Always respond in Spanish.
+    5. STYLE & CONTRAST (CRITICAL): 
+       - If you use a dark background (like Blue #005fc5), you MUST use WHITE TEXT for ALL elements inside.
+       - Use the class "!text-white" on headings (h1, h2, h3) and paragraphs (p) to ensure high contrast.
+       - NEVER use gray or dark text on dark backgrounds.
+       - Use Green (#4cbf8c) for success/primary actions.
+       - Use Blue (#005fc5) for main headers or hero backgrounds.
+       - Typography: Montserrat.
+    
+    REQUIRED HTML PATTERNS (Tailwind CSS):
+    - Hero Section: <div class="bg-[#005fc5] text-white p-8 rounded-2xl mb-8"> <h1 class="!text-white text-3xl font-bold mb-2">Titulo</h1> <p class="!text-white opacity-90">Subtitulo</p> </div>
+    - Use <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> for features.
+    - Use <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-[#4cbf8c]"> for highlights.
+    - Use icons (as SVG or emojis if needed, but styled nicely).
+    
+    OUTPUT:
+    - Return ONLY the raw HTML string for the content area.
+    - Do NOT wrap in \`\`\`html code blocks.
+    - Do NOT include <html>, <head>, or <body> tags.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: modelId,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+
+    const text = response.text || '';
+    return text.replace(/```html/g, '').replace(/```/g, '').trim();
+  } catch (error) {
+    console.error("Gemini Chat API Error:", error);
+    throw new Error("Failed to generate content from chat prompt.");
+  }
+};
